@@ -9,7 +9,7 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.components import websocket_api
-from homeassistant.const import SERVICE_RELOAD
+from homeassistant.const import SERVICE_RELOAD, SERVICE_TURN_OFF, SERVICE_TURN_ON
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 
@@ -28,6 +28,7 @@ def async_register(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_get)
     websocket_api.async_register_command(hass, ws_save_draft)
     websocket_api.async_register_command(hass, ws_save)
+    websocket_api.async_register_command(hass, ws_set_enabled)
     websocket_api.async_register_command(hass, ws_delete)
 
 
@@ -214,6 +215,51 @@ async def ws_save(
 
 @websocket_api.websocket_command(
     {
+        vol.Required("type"): "oquanta/set_enabled",
+        vol.Required("flow_id"): str,
+        vol.Required("enabled"): bool,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_set_enabled(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    flow_id = str(msg["flow_id"])
+    enabled = bool(msg["enabled"])
+    store = _store(hass)
+    record = await store.async_set_enabled(flow_id, enabled)
+    if record is None:
+        connection.send_error(msg["id"], "not_found", "Flow not found")
+        return
+    automation_id = str(record.get("automation_id") or automation_id_for(flow_id))
+    try:
+        if record.get("deployed_at"):
+            await hass.async_add_executor_job(
+                _patch_initial_state,
+                _automations_path(hass),
+                automation_id,
+                enabled,
+            )
+        entity_id = find_automation_entity(hass, automation_id)
+        if entity_id:
+            await hass.services.async_call(
+                AUTOMATION_DOMAIN,
+                SERVICE_TURN_ON if enabled else SERVICE_TURN_OFF,
+                {"entity_id": entity_id},
+                blocking=True,
+            )
+    except Exception as err:  # noqa: BLE001
+        _LOGGER.warning("Could not set enabled for %s: %s", automation_id, err)
+        connection.send_error(msg["id"], "ha_error", str(err))
+        return
+    connection.send_result(msg["id"], _summary(hass, record))
+
+
+@websocket_api.websocket_command(
+    {
         vol.Required("type"): "oquanta/delete",
         vol.Required("flow_id"): str,
     }
@@ -226,7 +272,7 @@ async def ws_delete(
     msg: dict[str, Any],
 ) -> None:
     flow_id = msg["flow_id"]
-    record = await _store(hass).async_delete(flow_id)
+    record = _store(hass).flows.get(flow_id)
     if record is None:
         connection.send_error(msg["id"], "not_found", "Flow not found")
         return
@@ -252,6 +298,9 @@ async def ws_delete(
                 registry.async_remove(entity_id)
     except Exception as err:  # noqa: BLE001
         _LOGGER.warning("Could not remove automation %s: %s", automation_id, err)
+        connection.send_error(msg["id"], "ha_error", str(err))
+        return
+    await _store(hass).async_delete(flow_id)
     connection.send_result(msg["id"], {"id": flow_id})
 
 
@@ -312,6 +361,19 @@ def _upsert_automation_yaml(
     if not updated:
         items.append(config)
     _save_yaml_list(path, items)
+
+
+def _patch_initial_state(path: str, automation_id: str, enabled: bool) -> bool:
+    items = _load_yaml_list(path)
+    found = False
+    for item in items:
+        if isinstance(item, dict) and str(item.get("id", "")) == automation_id:
+            item["initial_state"] = enabled
+            found = True
+            break
+    if found:
+        _save_yaml_list(path, items)
+    return found
 
 
 def _remove_automation_yaml(path: str, automation_id: str) -> None:

@@ -65,6 +65,20 @@ class FlowStore:
         await self.async_save()
         return record
 
+    async def async_set_enabled(
+        self, flow_id: str, enabled: bool
+    ) -> dict[str, Any] | None:
+        record = self.flows.get(flow_id)
+        if not isinstance(record, dict):
+            return None
+        graph = record.get("graph") if isinstance(record.get("graph"), dict) else {}
+        meta = graph.get("meta") if isinstance(graph.get("meta"), dict) else {}
+        graph = {**graph, "meta": {**meta, "enabled": enabled}}
+        record = {**record, "graph": graph}
+        self.flows[flow_id] = record
+        await self.async_save()
+        return record
+
     async def async_delete(self, flow_id: str) -> dict[str, Any] | None:
         record = self.flows.pop(flow_id, None)
         if record is not None:
