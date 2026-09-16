@@ -9,6 +9,6 @@
   "after_dependencies": ["automation"],
   "iot_class": "local_push",
   "requirements": [],
-  "version": "0.1.0a2",
+  "version": "0.1.0a3",
   "integration_type": "service"
 }
