@@ -26,6 +26,7 @@ def async_register(hass: HomeAssistant) -> None:
     """Register Oquanta websocket commands."""
     websocket_api.async_register_command(hass, ws_list)
     websocket_api.async_register_command(hass, ws_get)
+    websocket_api.async_register_command(hass, ws_save_draft)
     websocket_api.async_register_command(hass, ws_save)
     websocket_api.async_register_command(hass, ws_delete)
 
@@ -58,7 +59,19 @@ def _summary(hass: HomeAssistant, record: dict[str, Any]) -> dict[str, Any]:
         "entity_id": entity_id,
         "automation_id": automation_id,
         "entity_ids": _entity_ids(graph),
+        "deployed_at": record.get("deployed_at"),
+        "unpublished": _unpublished(record),
     }
+
+
+def _unpublished(record: dict[str, Any]) -> bool:
+    deployed = record.get("deployed_at")
+    updated = record.get("updated_at")
+    if not deployed:
+        return True
+    if not isinstance(updated, str) or not isinstance(deployed, str):
+        return False
+    return updated > deployed
 
 
 def _entity_ids(graph: dict[str, Any]) -> list[str]:
@@ -108,9 +121,39 @@ async def ws_get(
 ) -> None:
     record = _store(hass).flows.get(msg["flow_id"])
     if record is None:
-        connection.send_error(msg["id"], "not_found", "Flödet finns inte")
+        connection.send_error(msg["id"], "not_found", "Flow not found")
         return
     connection.send_result(msg["id"], record)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "oquanta/save_draft",
+        vol.Required("graph"): dict,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_save_draft(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    graph = msg["graph"]
+    meta = graph.get("meta") if isinstance(graph.get("meta"), dict) else {}
+    flow_id = str(meta.get("id") or "")
+    if not flow_id:
+        connection.send_error(msg["id"], "invalid", "Flow is missing an id")
+        return
+    automation_id = automation_id_for(flow_id)
+    record = await _store(hass).async_upsert(graph, automation_id)
+    connection.send_result(
+        msg["id"],
+        {
+            **_summary(hass, record),
+            "graph": graph,
+        },
+    )
 
 
 @websocket_api.websocket_command(
@@ -131,7 +174,7 @@ async def ws_save(
     meta = graph.get("meta") if isinstance(graph.get("meta"), dict) else {}
     flow_id = str(meta.get("id") or "")
     if not flow_id:
-        connection.send_error(msg["id"], "invalid", "Flow saknar id")
+        connection.send_error(msg["id"], "invalid", "Flow is missing an id")
         return
     automation_id = automation_id_for(flow_id)
     record = await _store(hass).async_upsert(graph, automation_id)
@@ -153,6 +196,10 @@ async def ws_save(
     except Exception as err:  # noqa: BLE001
         _LOGGER.warning("Could not deploy Oquanta automation %s: %s", automation_id, err)
         deploy_error = str(err)
+    else:
+        marked = await _store(hass).async_mark_deployed(flow_id)
+        if marked is not None:
+            record = marked
     entity_id = find_automation_entity(hass, automation_id)
     connection.send_result(
         msg["id"],
@@ -181,7 +228,7 @@ async def ws_delete(
     flow_id = msg["flow_id"]
     record = await _store(hass).async_delete(flow_id)
     if record is None:
-        connection.send_error(msg["id"], "not_found", "Flödet finns inte")
+        connection.send_error(msg["id"], "not_found", "Flow not found")
         return
     automation_id = str(record.get("automation_id") or automation_id_for(flow_id))
     try:

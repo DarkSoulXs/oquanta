@@ -30,6 +30,61 @@ GITHUB_HEADERS = {
 ReleaseInfo = dict[str, str | None]
 
 
+def _empty_release() -> ReleaseInfo:
+    return {
+        "latest": None,
+        "notes": None,
+        "zipball": None,
+        "html_url": None,
+    }
+
+
+def _release_info(payload: dict[str, Any]) -> ReleaseInfo:
+    tag = str(payload.get("tag_name") or "").lstrip("v")
+    notes = str(payload.get("body") or "")
+    zipball = payload.get("zipball_url")
+    html_url = payload.get("html_url")
+    return {
+        "latest": tag or None,
+        "notes": notes[:4000] if notes else None,
+        "zipball": str(zipball) if zipball else None,
+        "html_url": str(html_url) if html_url else None,
+    }
+
+
+def _awesome_version(tag: str) -> AwesomeVersion | None:
+    try:
+        return AwesomeVersion(tag)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def newest_published_release(releases: list[Any]) -> dict[str, Any] | None:
+    """Pick the newest non-draft GitHub release, including pre-releases."""
+    best: dict[str, Any] | None = None
+    best_version: AwesomeVersion | None = None
+    for item in releases:
+        if not isinstance(item, dict) or item.get("draft"):
+            continue
+        tag = str(item.get("tag_name") or "").lstrip("v")
+        if not tag:
+            continue
+        version = _awesome_version(tag)
+        if best is None:
+            best = item
+            best_version = version
+            continue
+        if version is None or best_version is None:
+            if version is not None:
+                best = item
+                best_version = version
+            continue
+        if version > best_version:
+            best = item
+            best_version = version
+    return best
+
+
 class OquantaUpdateCoordinator(DataUpdateCoordinator[ReleaseInfo]):
     """Poll GitHub Releases for a newer Oquanta version."""
 
@@ -43,16 +98,11 @@ class OquantaUpdateCoordinator(DataUpdateCoordinator[ReleaseInfo]):
         self.repo = repo
 
     async def _async_update_data(self) -> ReleaseInfo:
-        empty: ReleaseInfo = {
-            "latest": None,
-            "notes": None,
-            "zipball": None,
-            "html_url": None,
-        }
+        empty = _empty_release()
         if not self.repo:
             return empty
         session = async_get_clientsession(self.hass)
-        url = f"https://api.github.com/repos/{self.repo}/releases/latest"
+        url = f"https://api.github.com/repos/{self.repo}/releases?per_page=20"
         try:
             async with session.get(
                 url, headers=GITHUB_HEADERS, timeout=ClientTimeout(total=20)
@@ -66,16 +116,14 @@ class OquantaUpdateCoordinator(DataUpdateCoordinator[ReleaseInfo]):
             _LOGGER.warning("Could not check Oquanta updates: %s", err)
             return self.data or empty
 
-        tag = str(payload.get("tag_name") or "").lstrip("v")
-        notes = str(payload.get("body") or "")
-        zipball = payload.get("zipball_url")
-        html_url = payload.get("html_url")
-        return {
-            "latest": tag or None,
-            "notes": notes[:4000] if notes else None,
-            "zipball": str(zipball) if zipball else None,
-            "html_url": str(html_url) if html_url else None,
-        }
+        if not isinstance(payload, list) or not payload:
+            _LOGGER.debug("No GitHub releases yet for %s", self.repo)
+            return empty
+        chosen = newest_published_release(payload)
+        if chosen is None:
+            _LOGGER.debug("No published GitHub releases for %s", self.repo)
+            return empty
+        return _release_info(chosen)
 
 
 class OquantaUpdateEntity(UpdateEntity):

@@ -43,13 +43,24 @@ class FlowStore:
         meta = graph.get("meta") if isinstance(graph.get("meta"), dict) else {}
         flow_id = str(meta.get("id") or "")
         if not flow_id:
-            raise ValueError("Flow saknar id")
+            raise ValueError("Flow is missing an id")
+        existing = self.flows.get(flow_id) if isinstance(self.flows.get(flow_id), dict) else {}
         record = {
             "id": flow_id,
             "graph": graph,
             "automation_id": automation_id,
             "updated_at": dt_util.utcnow().isoformat(),
+            "deployed_at": existing.get("deployed_at") if existing else None,
         }
+        self.flows[flow_id] = record
+        await self.async_save()
+        return record
+
+    async def async_mark_deployed(self, flow_id: str) -> dict[str, Any] | None:
+        record = self.flows.get(flow_id)
+        if not isinstance(record, dict):
+            return None
+        record["deployed_at"] = record.get("updated_at") or dt_util.utcnow().isoformat()
         self.flows[flow_id] = record
         await self.async_save()
         return record

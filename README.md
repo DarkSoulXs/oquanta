@@ -4,7 +4,11 @@
 
 <h1 align="center">Oquanta</h1>
 
-<p align="center"><b>Alpha</b> · visuell flödeseditor för Home Assistant</p>
+<p align="center"><b>Alpha</b> · visual flow editor for Home Assistant</p>
+
+<p align="center">
+  <a href="README.sv.md">Svenska</a>
+</p>
 
 <p align="center">
   <img alt="Alpha" src="https://img.shields.io/badge/build-alpha-d97706">
@@ -12,57 +16,59 @@
   <img alt="License" src="https://img.shields.io/badge/license-MIT-111827">
 </p>
 
-Oquanta lägger en Homey-lik duk i Home Assistants sidomeny. Du ritar **När**, **Om** och **Gör**; Home Assistant kör resultatet som en vanlig automation. Grafen är editorn. Automationen är runtime.
+Oquanta adds a Homey-style canvas to the Home Assistant sidebar. You draw **When**, **If**, and **Do** cards; Home Assistant runs the result as a normal automation. The graph is the editor. The automation is the runtime.
 
-**Det här är en alpha.** Funktioner saknas, beteende kan ändras och saker kan gå sönder. Testa gärna, men lita inte på den som enda sätt att styra hemmet ännu. HACS kommer inte förrän 1.0.
+**This is an alpha.** Features are missing, behaviour can change, and things can break. Try it, but do not rely on it as your only way to run the house yet. HACS will not ship before 1.0.
 
-Det här repot är **installationen** (`custom_components/oquanta`). Källkoden för editorn ligger i ett separat, privat repo.
+This repository is the **installable integration** (`custom_components/oquanta`). Editor source lives in a separate private repo.
+
+The panel follows Home Assistant’s language (English or Swedish).
 
 ---
 
-## Krav
+## Requirements
 
-Home Assistant OS, Supervised eller Container. Administratör. Omstart av Core efter installation. Sökvägen är alltid `/config/custom_components/oquanta`.
+Home Assistant OS, Supervised, or Container. Administrator. Restart Core after install. The path is always `/config/custom_components/oquanta`.
 
-## Installation
+## Install
 
-1. Ladda ner zip från [Releases](https://github.com/DarkSoulXs/oquanta/releases) (märkt alpha).
-2. Packa upp och kopiera mappen `custom_components/oquanta` till:
+1. Download the zip from [Releases](https://github.com/DarkSoulXs/oquanta/releases) (marked alpha).
+2. Unpack it and copy the folder `custom_components/oquanta` to:
 
    ```text
    /config/custom_components/oquanta
    ```
 
-3. Lägg till i `configuration.yaml`:
+3. Add this to `configuration.yaml`:
 
    ```yaml
    oquanta:
    ```
 
-4. Starta om Home Assistant Core.
-5. Öppna **Oquanta** i sidomenyn.
+4. Restart Home Assistant Core.
+5. Open **Oquanta** in the sidebar.
 
-Samba eller Studio Code: samma mapp, bredvid dina andra custom components, sedan omstart.
+Samba or Studio Code: the same folder, next to your other custom components, then restart.
 
-### Uppdateringar
+### Updates
 
-Oquanta kollar GitHub Releases vid start och var tolfte timme. Finns en ny version visas en banner (**Installera** / **Inte nu**). Efter in-app-install: starta om Core när du vill. Samma uppdatering syns under **Inställningar → Uppdateringar**.
+Oquanta checks GitHub Releases on startup and every twelve hours. If a newer version exists, a banner offers **Install** or **Not now**. After an in-app install, restart Core when you are ready. The same update appears under **Settings → Updates**.
 
-Manuellt: ladda ner en nyare zip och skriv över mappen.
+Manual: download a newer zip and overwrite the folder.
 
-## Alpha — vad som finns
+## Alpha — what is there
 
-- Flöden som blir native Home Assistant-automationer (`oquanta_<id>`)
-- Live-katalog från din instans (entiteter, områden, tjänster)
-- Live-test mot huset (`automation.trigger`) — **tänder och släcker på riktigt**
-- Logik, välj, parallellt, upprepa, stoppa och underflöden (tidigt)
+- Flows that become native Home Assistant automations (`oquanta_<id>`)
+- Live catalog from your instance (entities, areas, services)
+- Live test against the house (`automation.trigger`) — **this really turns things on and off**
+- Logic, choose, parallel, repeat, stop, and subflows (early)
 
-Spara, import och sladdar kan fortfarande bete sig oförutsägbart. Rapportera gärna fel under [Issues](https://github.com/DarkSoulXs/oquanta/issues).
+Save, import, and wires can still misbehave. Please report issues under [Issues](https://github.com/DarkSoulXs/oquanta/issues).
 
-## Avinstallation
+## Uninstall
 
-Ta bort `oquanta:` ur `configuration.yaml`, radera `/config/custom_components/oquanta`, starta om Core. Automationer med id `oquanta_*` kan tas bort i Home Assistants automationsvy.
+Remove `oquanta:` from `configuration.yaml`, delete `/config/custom_components/oquanta`, restart Core. Automations with id `oquanta_*` can be removed in the Home Assistant automations UI.
 
-## Licens
+## License
 
-MIT. Copyright DarkSoulXs. Se [LICENSE](LICENSE).
+MIT. Copyright DarkSoulXs. See [LICENSE](LICENSE).
