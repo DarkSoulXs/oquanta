@@ -39,14 +39,11 @@ Home Assistant OS, Supervised eller Container. Administratör. Omstart av Core e
    /config/custom_components/oquanta
    ```
 
-3. Lägg till i `configuration.yaml`:
-
-   ```yaml
-   oquanta:
-   ```
-
-4. Starta om Home Assistant Core.
+3. Öppna **Inställningar → Enheter och tjänster → Lägg till integration → Oquanta**.
+4. Starta om Home Assistant Core om sidomenyn saknar Oquanta.
 5. Öppna **Oquanta** i sidomenyn.
+
+Befintlig yaml `oquanta:` importeras automatiskt som config entry (bakåtkompatibilitet). Ny installation behöver inte `configuration.yaml`.
 
 Samba eller Studio Code: samma mapp, bredvid dina andra custom components, sedan omstart.
 
@@ -67,7 +64,7 @@ Spara, import och sladdar kan fortfarande bete sig oförutsägbart. Rapportera g
 
 ## Avinstallation
 
-Ta bort `oquanta:` ur `configuration.yaml`, radera `/config/custom_components/oquanta`, starta om Core. Automationer med id `oquanta_*` kan tas bort i Home Assistants automationsvy.
+Ta bort integrationen under **Inställningar → Enheter och tjänster**, radera `/config/custom_components/oquanta`, starta om Core. Har du kvar yaml `oquanta:` tar du bort den också. Automationer med id `oquanta_*` kan tas bort i Home Assistants automationsvy.
 
 ## Licens
 

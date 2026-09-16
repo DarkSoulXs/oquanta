@@ -39,14 +39,11 @@ Home Assistant OS, Supervised, or Container. Administrator. Restart Core after i
    /config/custom_components/oquanta
    ```
 
-3. Add this to `configuration.yaml`:
-
-   ```yaml
-   oquanta:
-   ```
-
-4. Restart Home Assistant Core.
+3. Open **Settings → Devices & services → Add integration → Oquanta**.
+4. Restart Home Assistant Core if the sidebar item is missing.
 5. Open **Oquanta** in the sidebar.
+
+Existing yaml `oquanta:` is imported automatically as a config entry (backward compatible). Do not add a new yaml block for a fresh install.
 
 Samba or Studio Code: the same folder, next to your other custom components, then restart.
 
@@ -67,7 +64,7 @@ Save, import, and wires can still misbehave. Please report issues under [Issues]
 
 ## Uninstall
 
-Remove `oquanta:` from `configuration.yaml`, delete `/config/custom_components/oquanta`, restart Core. Automations with id `oquanta_*` can be removed in the Home Assistant automations UI.
+Remove the Oquanta integration under **Settings → Devices & services**, delete `/config/custom_components/oquanta`, restart Core. If you still have yaml `oquanta:`, remove that too. Automations with id `oquanta_*` can be removed in the Home Assistant automations UI.
 
 ## License
 

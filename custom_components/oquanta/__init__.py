@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 
 import voluptuous as vol
-
+from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.components import panel_custom
 from homeassistant.components.update import UpdateEntity
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
@@ -46,14 +46,24 @@ CONFIG_SCHEMA = vol.Schema(
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up Oquanta panel, static files and update checks."""
-    domain_config = config.get(DOMAIN) or {}
-    github_repo = GITHUB_REPO
-    if isinstance(domain_config, dict):
-        repo = domain_config.get("github_repo")
-        if isinstance(repo, str) and repo.strip():
-            github_repo = repo.strip()
+    """Import yaml `oquanta:` into a config entry. Panel setup is in async_setup_entry."""
+    if DOMAIN in config:
+        hass.async_create_task(
+            hass.config_entries.flow.async_init(
+                DOMAIN,
+                context={"source": SOURCE_IMPORT},
+                data={},
+            )
+        )
+    return True
 
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up Oquanta panel, static files and update checks from a config entry."""
+    if DOMAIN in hass.data:
+        return True
+
+    github_repo = GITHUB_REPO
     coordinator = OquantaUpdateCoordinator(hass, github_repo)
     flow_store = FlowStore(hass)
     hass.data[DOMAIN] = {
@@ -63,14 +73,15 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         "version": integration_version(),
         "pending_restart": False,
         "install_error": False,
+        "entry_id": entry.entry_id,
     }
     await flow_store.async_load()
     async_register_websocket(hass)
 
     await _async_register_static_paths(hass)
-    await async_setup_component(hass, "panel_custom", config)
+    await async_setup_component(hass, "panel_custom", {})
     await _async_register_panel(hass)
-    await async_setup_component(hass, "update", config)
+    await async_setup_component(hass, "update", {})
 
     async def _add_update_entity(hass: HomeAssistant, _component: str) -> None:
         if hass.data[DOMAIN].get("update_registered"):
@@ -93,6 +104,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     else:
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _refresh_on_start)
 
+    return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload the panel when the config entry is removed."""
+    try:
+        hass.components.frontend.async_remove_panel(PANEL_URL_PATH)
+    except Exception:  # noqa: BLE001 — HA versions differ on panel removal
+        _LOGGER.debug("Oquanta panel could not be unregistered")
+    hass.data.pop(DOMAIN, None)
     return True
 
 
