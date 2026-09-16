@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <clipPath id="inner-ring" clipPathUnits="userSpaceOnUse">
+      <path
+        clip-rule="evenodd"
+        d="M64 34 90 49v30L64 94 38 79V49L64 34Zm0 18 10.4 6v12L64 76 53.6 70v-12L64 52Z"
+      />
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#inner-ring)">
+    <path fill="#06B6D4" d="M64 64 38 79V49L64 34Z" />
+    <path fill="#7C3AED" d="M64 64 64 34 90 49v30Z" />
+    <path fill="#F59E0B" d="M64 64 90 79 64 94 38 79Z" />
+  </g>
+
+  <polygon
+    points="64,34 90,49 90,79 64,94 38,79 38,49"
+    stroke="#070B14"
+    stroke-width="3.5"
+    stroke-linejoin="round"
+  />
+
+  <path
+    d="M30 40 64 20l34 20"
+    stroke="#2B3347"
+    stroke-width="14"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M102 44v40"
+    stroke="#7C3AED"
+    stroke-width="14"
+    stroke-linecap="round"
+  />
+  <path
+    d="M26 42 24 86 64 109 99 88"
+    stroke="#06B6D4"
+    stroke-width="14"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

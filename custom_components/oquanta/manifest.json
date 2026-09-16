@@ -1,0 +1,14 @@
+{
+  "domain": "oquanta",
+  "name": "Oquanta",
+  "codeowners": ["@DarkSoulXs"],
+  "config_flow": false,
+  "documentation": "https://github.com/DarkSoulXs/oquanta",
+  "issue_tracker": "https://github.com/DarkSoulXs/oquanta/issues",
+  "dependencies": ["frontend", "http", "panel_custom", "update", "websocket_api"],
+  "after_dependencies": ["automation"],
+  "iot_class": "local_push",
+  "requirements": [],
+  "version": "0.1.0a1",
+  "integration_type": "service"
+}
