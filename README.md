@@ -18,7 +18,7 @@
 
 Oquanta adds a Homey-style canvas to the Home Assistant sidebar. You draw **When**, **If**, and **Do** cards; Home Assistant runs the result as a normal automation or script. The graph is the editor. Home Assistant is the runtime.
 
-**This is a beta.** Features can still change, and things can break. Try it, but do not rely on it as your only way to run the house yet. HACS will not ship before 1.0.
+**This is a beta.** Features can still change, and things can break. Try it, but do not rely on it as your only way to run the house yet. The [HACS default store](https://hacs.xyz/docs/publish/include) waits until 1.0. Testers can add this repo as a **custom repository**.
 
 This repository is the **installable integration** (`custom_components/oquanta`). Editor source lives in a separate private repo.
 
@@ -32,6 +32,20 @@ Home Assistant OS, Supervised, or Container. Administrator. Restart Core after i
 
 ## Install
 
+### HACS (custom repository)
+
+Oquanta is not in the HACS default store. Add it yourself:
+
+1. Open [Add Oquanta in HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=DarkSoulXs&repository=oquanta&category=integration), or in HACS: **⋮ → Custom repositories**, URL `https://github.com/DarkSoulXs/oquanta`, type **Integration**.
+2. Enable **pre-release / beta** for this repository (all current tags are beta).
+3. Download/install Oquanta, then restart Home Assistant Core.
+4. Open **Settings → Devices & services → Add integration → Oquanta**.
+5. Open **Oquanta** in the sidebar.
+
+Existing yaml `oquanta:` is imported automatically as a config entry (backward compatible). Do not add a new yaml block for a fresh install.
+
+### Manual zip
+
 1. Download the zip from [Releases](https://github.com/DarkSoulXs/oquanta/releases) (marked beta).
 2. Unpack it and copy the folder `custom_components/oquanta` to:
 
@@ -43,15 +57,13 @@ Home Assistant OS, Supervised, or Container. Administrator. Restart Core after i
 4. Restart Home Assistant Core if the sidebar item is missing.
 5. Open **Oquanta** in the sidebar.
 
-Existing yaml `oquanta:` is imported automatically as a config entry (backward compatible). Do not add a new yaml block for a fresh install.
-
 Samba or Studio Code: the same folder, next to your other custom components, then restart.
 
 ### Updates
 
-Oquanta checks GitHub Releases on startup and every twelve hours. If a newer version exists, a banner offers **Install** or **Not now**. After an in-app install, restart Core when you are ready. The same update appears under **Settings → Updates**.
+If you installed via HACS, update in HACS (keep pre-release enabled). Oquanta also checks GitHub Releases on startup and every twelve hours and can show its own banner. Use **one** update path, not both.
 
-Manual: download a newer zip and overwrite the folder.
+Manual zip: download a newer zip and overwrite the folder.
 
 ## Beta — what is there
 

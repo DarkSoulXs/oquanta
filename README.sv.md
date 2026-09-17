@@ -18,7 +18,7 @@
 
 Oquanta lägger en Homey-lik duk i Home Assistants sidomeny. Du ritar **När**, **Om** och **Gör**; Home Assistant kör resultatet som en vanlig automation eller ett skript. Grafen är editorn. Home Assistant är runtime.
 
-**Det här är en beta.** Funktioner kan fortfarande ändras och saker kan gå sönder. Testa gärna, men lita inte på den som enda sätt att styra hemmet ännu. HACS kommer inte förrän 1.0.
+**Det här är en beta.** Funktioner kan fortfarande ändras och saker kan gå sönder. Testa gärna, men lita inte på den som enda sätt att styra hemmet ännu. [HACS default-butik](https://hacs.xyz/docs/publish/include) väntar till 1.0. Testers kan lägga till det här repot som **custom repository**.
 
 Det här repot är **installationen** (`custom_components/oquanta`). Källkoden för editorn ligger i ett separat, privat repo.
 
@@ -32,6 +32,20 @@ Home Assistant OS, Supervised eller Container. Administratör. Omstart av Core e
 
 ## Installation
 
+### HACS (custom repository)
+
+Oquanta finns inte i HACS default-butik. Lägg till den själv:
+
+1. Öppna [Lägg till Oquanta i HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=DarkSoulXs&repository=oquanta&category=integration), eller i HACS: **⋮ → Custom repositories**, URL `https://github.com/DarkSoulXs/oquanta`, typ **Integration**.
+2. Slå på **pre-release / beta** för det här repot (alla taggar nu är beta).
+3. Ladda ner/installera Oquanta, starta sedan om Home Assistant Core.
+4. Öppna **Inställningar → Enheter och tjänster → Lägg till integration → Oquanta**.
+5. Öppna **Oquanta** i sidomenyn.
+
+Befintlig yaml `oquanta:` importeras automatiskt som config entry (bakåtkompatibilitet). Ny installation behöver inte `configuration.yaml`.
+
+### Manuell zip
+
 1. Ladda ner zip från [Releases](https://github.com/DarkSoulXs/oquanta/releases) (märkt beta).
 2. Packa upp och kopiera mappen `custom_components/oquanta` till:
 
@@ -43,15 +57,13 @@ Home Assistant OS, Supervised eller Container. Administratör. Omstart av Core e
 4. Starta om Home Assistant Core om sidomenyn saknar Oquanta.
 5. Öppna **Oquanta** i sidomenyn.
 
-Befintlig yaml `oquanta:` importeras automatiskt som config entry (bakåtkompatibilitet). Ny installation behöver inte `configuration.yaml`.
-
 Samba eller Studio Code: samma mapp, bredvid dina andra custom components, sedan omstart.
 
 ### Uppdateringar
 
-Oquanta kollar GitHub Releases vid start och var tolfte timme. Finns en ny version visas en banner (**Installera** / **Inte nu**). Efter in-app-install: starta om Core när du vill. Samma uppdatering syns under **Inställningar → Uppdateringar**.
+Installerade du via HACS: uppdatera i HACS (behåll pre-release på). Oquanta kollar också GitHub Releases vid start och var tolfte timme och kan visa en egen banner. Använd **en** uppdateringsväg, inte båda.
 
-Manuellt: ladda ner en nyare zip och skriv över mappen.
+Manuell zip: ladda ner en nyare zip och skriv över mappen.
 
 ## Beta — vad som finns
 
