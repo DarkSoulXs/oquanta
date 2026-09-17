@@ -1,6 +1,6 @@
 <div align="center">
 
-![Oquanta](custom_components/oquanta/brand/icon.png)
+![Oquanta](https://raw.githubusercontent.com/DarkSoulXs/oquanta/main/custom_components/oquanta/brand/icon.png)
 
 </div>
 
