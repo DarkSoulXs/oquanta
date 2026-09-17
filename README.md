@@ -1,6 +1,8 @@
-<p align="center">
-  <img src="custom_components/oquanta/www/logo.svg" width="72" alt="Oquanta">
-</p>
+<div align="center">
+
+![Oquanta](custom_components/oquanta/brand/icon.png)
+
+</div>
 
 <h1 align="center">Oquanta</h1>
 
