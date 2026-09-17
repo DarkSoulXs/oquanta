@@ -3,42 +3,25 @@
     <clipPath id="inner-ring" clipPathUnits="userSpaceOnUse">
       <path
         clip-rule="evenodd"
-        d="M64 34 90 49v30L64 94 38 79V49L64 34Zm0 18 10.4 6v12L64 76 53.6 70v-12L64 52Z"
+        d="M64,36L88.25,50L88.25,78L64,92L39.75,78L39.75,50Z M64,52L74.39,58L74.39,70L64,76L53.61,70L53.61,58Z"
       />
     </clipPath>
   </defs>
 
   <g clip-path="url(#inner-ring)">
-    <path fill="#06B6D4" d="M64 64 38 79V49L64 34Z" />
-    <path fill="#7C3AED" d="M64 64 64 34 90 49v30Z" />
-    <path fill="#F59E0B" d="M64 64 90 79 64 94 38 79Z" />
+    <path fill="#06B6D4" d="M64 64L39.75,78L39.75,50L64,36Z" />
+    <path fill="#7C3AED" d="M64 64L64,36L88.25,50L88.25,78Z" />
+    <path fill="#F59E0B" d="M64 64L88.25,78L64,92L39.75,78Z" />
   </g>
 
   <polygon
-    points="64,34 90,49 90,79 64,94 38,79 38,49"
+    points="64,36 88.25,50 88.25,78 64,92 39.75,78 39.75,50"
     stroke="#070B14"
-    stroke-width="3.5"
-    stroke-linejoin="round"
+    stroke-width="3"
+    stroke-linejoin="miter"
   />
 
-  <path
-    d="M30 40 64 20l34 20"
-    stroke="#2B3347"
-    stroke-width="14"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M102 44v40"
-    stroke="#7C3AED"
-    stroke-width="14"
-    stroke-linecap="round"
-  />
-  <path
-    d="M26 42 24 86 64 109 99 88"
-    stroke="#06B6D4"
-    stroke-width="14"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+  <path fill="#2B3347" d="M20.70,39L64,14L107.30,39L95.18,46L64,28L32.82,46Z" />
+  <path fill="#7C3AED" d="M107.30,39L107.30,89L95.18,82L95.18,46Z" />
+  <path fill="#06B6D4" d="M107.30,89L64,114L20.70,89L20.70,39L32.82,46L32.82,82L64,100L95.18,82Z" />
 </svg>
