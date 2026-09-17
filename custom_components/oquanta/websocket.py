@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import logging
+import os
+import shutil
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -371,29 +374,59 @@ def _scripts_path(hass: HomeAssistant) -> str:
     return hass.config.path(SCRIPT_CONFIG_PATH)
 
 
-def _load_yaml_mapping(path: str) -> dict[str, Any]:
+def _load_yaml(path: str) -> Any:
     try:
         from homeassistant.util.yaml import load_yaml
     except ImportError:
         from homeassistant.util.yaml.loader import load_yaml
 
     if not Path(path).exists():
-        return {}
-    data = load_yaml(path)
-    if data is None:
-        return {}
-    if not isinstance(data, dict):
-        raise ValueError("scripts.yaml måste vara ett objekt")
-    return data
+        return None
+    return load_yaml(path)
 
 
-def _save_yaml_mapping(path: str, data: dict[str, Any]) -> None:
+def _backup_yaml(path: str) -> None:
+    src = Path(path)
+    if not src.is_file():
+        return
+    shutil.copy2(src, src.with_name(f"{src.name}.oquanta.bak"))
+
+
+def _atomic_save_yaml(path: str, data: Any) -> None:
     try:
         from homeassistant.util.yaml import save_yaml
     except ImportError:
         from homeassistant.util.yaml.dumper import save_yaml
 
-    save_yaml(path, data)
+    dest = Path(path)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    handle, tmp_name = tempfile.mkstemp(
+        prefix=f".{dest.name}.",
+        suffix=".tmp",
+        dir=dest.parent,
+    )
+    os.close(handle)
+    tmp_path = Path(tmp_name)
+    try:
+        _backup_yaml(str(dest))
+        save_yaml(str(tmp_path), data)
+        os.replace(tmp_path, dest)
+    except Exception:
+        tmp_path.unlink(missing_ok=True)
+        raise
+
+
+def _load_yaml_mapping(path: str) -> dict[str, Any]:
+    data = _load_yaml(path)
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise ValueError("scripts.yaml must be a mapping, not a list")
+    return data
+
+
+def _save_yaml_mapping(path: str, data: dict[str, Any]) -> None:
+    _atomic_save_yaml(path, data)
 
 
 def _upsert_script_yaml(path: str, script_id: str, config: dict[str, Any]) -> None:
@@ -429,28 +462,16 @@ def _automation_payload(
 
 
 def _load_yaml_list(path: str) -> list[Any]:
-    try:
-        from homeassistant.util.yaml import load_yaml
-    except ImportError:
-        from homeassistant.util.yaml.loader import load_yaml
-
-    if not Path(path).exists():
-        return []
-    data = load_yaml(path)
+    data = _load_yaml(path)
     if data is None:
         return []
     if not isinstance(data, list):
-        raise ValueError("automations.yaml måste vara en lista")
+        raise ValueError("automations.yaml must be a list")
     return data
 
 
 def _save_yaml_list(path: str, data: list[Any]) -> None:
-    try:
-        from homeassistant.util.yaml import save_yaml
-    except ImportError:
-        from homeassistant.util.yaml.dumper import save_yaml
-
-    save_yaml(path, data)
+    _atomic_save_yaml(path, data)
 
 
 def _upsert_automation_yaml(
