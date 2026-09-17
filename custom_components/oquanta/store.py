@@ -16,6 +16,11 @@ def automation_id_for(flow_id: str) -> str:
     return f"{AUTOMATION_ID_PREFIX}{flow_id}"
 
 
+def script_id_for(flow_id: str) -> str:
+    """Return the Home Assistant script object id for a flow."""
+    return f"{AUTOMATION_ID_PREFIX}{flow_id.replace('-', '_')}"
+
+
 class FlowStore:
     """Disk-backed map of Oquanta flows."""
 
