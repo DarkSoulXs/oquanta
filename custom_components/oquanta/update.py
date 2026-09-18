@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import json
 import logging
 import shutil
 import zipfile
@@ -250,7 +251,23 @@ def _install_zip(payload: bytes) -> None:
                 shutil.copyfileobj(source, out)
 
     _overlay(tmp, dest)
+    _prune_stale_panel_js(dest)
     shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _prune_stale_panel_js(dest: Path) -> None:
+    www = dest / "www"
+    manifest = dest / "manifest.json"
+    if not www.is_dir() or not manifest.is_file():
+        return
+    try:
+        version = json.loads(manifest.read_text(encoding="utf-8"))["version"]
+    except (OSError, json.JSONDecodeError, KeyError, TypeError):
+        return
+    keep = f"oquanta-panel.{version}.js"
+    for path in www.glob("oquanta-panel*.js"):
+        if path.name != keep:
+            path.unlink(missing_ok=True)
 
 
 def _oquanta_prefix(payload: bytes) -> str:

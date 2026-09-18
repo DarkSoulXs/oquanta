@@ -132,13 +132,14 @@ async def _async_register_static_paths(hass: HomeAssistant) -> None:
 
 async def _async_register_panel(hass: HomeAssistant) -> None:
     version = integration_version()
+    panel_js = f"oquanta-panel.{version}.js"
     await panel_custom.async_register_panel(
         hass,
         frontend_url_path=PANEL_URL_PATH,
         webcomponent_name=PANEL_WEBCOMPONENT,
         sidebar_title="Oquanta",
         sidebar_icon="mdi:hexagon-outline",
-        module_url=f"{STATIC_URL_PATH}/oquanta-panel.js?v={version}",
+        module_url=f"{STATIC_URL_PATH}/{panel_js}",
         embed_iframe=True,
         require_admin=True,
     )
