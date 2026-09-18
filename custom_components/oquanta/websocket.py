@@ -29,11 +29,19 @@ SCRIPT_DOMAIN = "script"
 def async_register(hass: HomeAssistant) -> None:
     """Register Oquanta websocket commands."""
     websocket_api.async_register_command(hass, ws_list)
+    websocket_api.async_register_command(hass, ws_list_trash)
     websocket_api.async_register_command(hass, ws_get)
     websocket_api.async_register_command(hass, ws_save_draft)
     websocket_api.async_register_command(hass, ws_save)
     websocket_api.async_register_command(hass, ws_set_enabled)
     websocket_api.async_register_command(hass, ws_delete)
+    websocket_api.async_register_command(hass, ws_restore)
+    websocket_api.async_register_command(hass, ws_empty_trash)
+    websocket_api.async_register_command(hass, ws_purge_trash)
+    websocket_api.async_register_command(hass, ws_export)
+    websocket_api.async_register_command(hass, ws_import)
+    websocket_api.async_register_command(hass, ws_revisions)
+    websocket_api.async_register_command(hass, ws_restore_revision)
 
 
 def _store(hass: HomeAssistant) -> FlowStore:
@@ -75,7 +83,7 @@ def _summary(hass: HomeAssistant, record: dict[str, Any]) -> dict[str, Any]:
     enabled = meta.get("enabled", True)
     if entity_id and kind != "script":
         enabled = hass.states.is_state(entity_id, "on")
-    return {
+    payload = {
         "id": record.get("id"),
         "alias": meta.get("alias") or record.get("id"),
         "kind": kind,
@@ -87,6 +95,9 @@ def _summary(hass: HomeAssistant, record: dict[str, Any]) -> dict[str, Any]:
         "deployed_at": record.get("deployed_at"),
         "unpublished": _unpublished(record),
     }
+    if record.get("deleted_at"):
+        payload["deleted_at"] = record.get("deleted_at")
+    return payload
 
 
 def _unpublished(record: dict[str, Any]) -> bool:
@@ -202,7 +213,13 @@ async def ws_save(
         connection.send_error(msg["id"], "invalid", "Flow is missing an id")
         return
     automation_id = automation_id_for(flow_id)
-    record = await _store(hass).async_upsert(graph, automation_id)
+    store = _store(hass)
+    previous = store.flows.get(flow_id)
+    if isinstance(previous, dict):
+        prev_graph = previous.get("graph")
+        if isinstance(prev_graph, dict):
+            await store.async_add_revision(flow_id, prev_graph)
+    record = await store.async_upsert(graph, automation_id)
     deploy_error: str | None = None
     kind = _flow_kind(meta)
     try:
@@ -233,7 +250,7 @@ async def ws_save(
         _LOGGER.warning("Could not deploy Oquanta %s %s: %s", kind, automation_id, err)
         deploy_error = str(err)
     else:
-        marked = await _store(hass).async_mark_deployed(flow_id)
+        marked = await store.async_mark_deployed(flow_id)
         if marked is not None:
             record = marked
     connection.send_result(
@@ -298,6 +315,20 @@ async def ws_set_enabled(
     connection.send_result(msg["id"], _summary(hass, record))
 
 
+@websocket_api.websocket_command({vol.Required("type"): "oquanta/list_trash"})
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_list_trash(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    store = _store(hass)
+    items = [_summary(hass, record) for record in store.trash.values()]
+    items.sort(key=lambda item: str(item.get("deleted_at") or ""), reverse=True)
+    connection.send_result(msg["id"], items)
+
+
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "oquanta/delete",
@@ -311,16 +342,183 @@ async def ws_delete(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    flow_id = msg["flow_id"]
+    flow_id = str(msg["flow_id"])
     record = _store(hass).flows.get(flow_id)
     if record is None:
         connection.send_error(msg["id"], "not_found", "Flow not found")
         return
+    error = await _undeploy_record(hass, record)
+    if error is not None:
+        connection.send_error(msg["id"], "ha_error", error)
+        return
+    trashed = await _store(hass).async_soft_delete(flow_id)
+    connection.send_result(msg["id"], {"id": flow_id, "deleted_at": (trashed or {}).get("deleted_at")})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "oquanta/restore",
+        vol.Required("flow_id"): str,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_restore(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    record = await _store(hass).async_restore(str(msg["flow_id"]))
+    if record is None:
+        connection.send_error(msg["id"], "not_found", "Flow not found")
+        return
+    connection.send_result(msg["id"], _summary(hass, record))
+
+
+@websocket_api.websocket_command({vol.Required("type"): "oquanta/empty_trash"})
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_empty_trash(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    count = await _store(hass).async_empty_trash()
+    connection.send_result(msg["id"], {"removed": count})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "oquanta/purge_trash",
+        vol.Required("flow_id"): str,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_purge_trash(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    record = await _store(hass).async_purge_trash_item(str(msg["flow_id"]))
+    if record is None:
+        connection.send_error(msg["id"], "not_found", "Flow not found")
+        return
+    connection.send_result(msg["id"], {"id": msg["flow_id"]})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "oquanta/export"})
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_export(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    store = _store(hass)
+    flows: list[dict[str, Any]] = []
+    for record in store.flows.values():
+        if not isinstance(record, dict):
+            continue
+        graph = record.get("graph")
+        if not isinstance(graph, dict):
+            continue
+        flows.append(
+            {
+                "graph": graph,
+                "updated_at": record.get("updated_at"),
+                "deployed_at": record.get("deployed_at"),
+            }
+        )
+    connection.send_result(
+        msg["id"],
+        {"version": 1, "flows": flows},
+    )
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "oquanta/import",
+        vol.Required("flows"): list,
+        vol.Optional("replace", default=False): bool,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_import(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    store = _store(hass)
+    replace = bool(msg.get("replace"))
+    imported = 0
+    skipped = 0
+    for item in msg["flows"]:
+        graph = item.get("graph") if isinstance(item, dict) else item
+        if not isinstance(graph, dict):
+            skipped += 1
+            continue
+        meta = graph.get("meta") if isinstance(graph.get("meta"), dict) else {}
+        flow_id = str(meta.get("id") or "")
+        if not flow_id:
+            skipped += 1
+            continue
+        if flow_id in store.flows and not replace:
+            skipped += 1
+            continue
+        await store.async_upsert(graph, automation_id_for(flow_id))
+        imported += 1
+    connection.send_result(msg["id"], {"imported": imported, "skipped": skipped})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "oquanta/revisions",
+        vol.Required("flow_id"): str,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_revisions(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    rows = _store(hass).list_revisions(str(msg["flow_id"]))
+    connection.send_result(msg["id"], rows)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "oquanta/restore_revision",
+        vol.Required("flow_id"): str,
+        vol.Required("saved_at"): str,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_restore_revision(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    record = await _store(hass).async_restore_revision(
+        str(msg["flow_id"]), str(msg["saved_at"])
+    )
+    if record is None:
+        connection.send_error(msg["id"], "not_found", "Revision not found")
+        return
+    connection.send_result(msg["id"], _summary(hass, record))
+
+
+async def _undeploy_record(hass: HomeAssistant, record: dict[str, Any]) -> str | None:
+    flow_id = str(record.get("id") or "")
     automation_id = str(record.get("automation_id") or automation_id_for(flow_id))
     graph = record.get("graph") if isinstance(record.get("graph"), dict) else {}
     meta = graph.get("meta") if isinstance(graph.get("meta"), dict) else {}
     kind = _flow_kind(meta)
-    script_id = script_id_for(str(flow_id))
+    script_id = script_id_for(flow_id)
     try:
         if kind == "script":
             await hass.async_add_executor_job(
@@ -360,10 +558,8 @@ async def ws_delete(
                     registry.async_remove(entity_id)
     except Exception as err:  # noqa: BLE001
         _LOGGER.warning("Could not remove %s %s: %s", kind, automation_id, err)
-        connection.send_error(msg["id"], "ha_error", str(err))
-        return
-    await _store(hass).async_delete(flow_id)
-    connection.send_result(msg["id"], {"id": flow_id})
+        return str(err)
+    return None
 
 
 def _scripts_path(hass: HomeAssistant) -> str:
