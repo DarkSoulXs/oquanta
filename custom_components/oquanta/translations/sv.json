@@ -9,5 +9,33 @@
     "abort": {
       "already_configured": "Oquanta är redan konfigurerad."
     }
+  },
+  "services": {
+    "http_request": {
+      "name": "HTTP-anrop",
+      "description": "Skickar ett HTTP-anrop från Home Assistant när ett Oquanta HTTP-kort körs.",
+      "fields": {
+        "url": {
+          "name": "URL",
+          "description": "Adress att anropa."
+        },
+        "method": {
+          "name": "Metod",
+          "description": "HTTP-metod."
+        },
+        "headers": {
+          "name": "Headers",
+          "description": "Valfria request-headers."
+        },
+        "payload": {
+          "name": "Body",
+          "description": "Valfri JSON- eller textkropp."
+        },
+        "timeout": {
+          "name": "Timeout",
+          "description": "Sekunder att vänta på svar."
+        }
+      }
+    }
   }
 }

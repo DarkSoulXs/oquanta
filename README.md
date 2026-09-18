@@ -73,7 +73,8 @@ Manual zip: download a newer zip and overwrite the folder.
 - Flows that become native Home Assistant automations (`oquanta_<id>`) or scripts (`script.oquanta_*`)
 - Library folders, tags, pin, search, and empty-draft cleanup
 - Live catalog from your instance (entities, areas, services)
-- Data ports, notes, frames, and YAML import/export
+- Data ports, notes, frames (double-click to edit inside), and YAML import/export
+- HTTP cards (`oquanta.http_request`), HA notices, TTS, and Home Assistant blueprints
 - Live test against the house (`automation.trigger` / `script.turn_on`) — **this really turns things on and off**
 - Condition preview against current states, without firing actions
 

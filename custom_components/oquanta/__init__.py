@@ -25,6 +25,8 @@ from .const import (
     STATIC_URL_PATH,
     integration_version,
 )
+from .http_service import async_register as async_register_http_service
+from .http_service import async_unregister as async_unregister_http_service
 from .store import FlowStore
 from .update import OquantaUpdateCoordinator, OquantaUpdateEntity
 from .websocket import async_register as async_register_websocket
@@ -77,6 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
     await flow_store.async_load()
     async_register_websocket(hass)
+    async_register_http_service(hass)
 
     await _async_register_static_paths(hass)
     await async_setup_component(hass, "panel_custom", {})
@@ -113,6 +116,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.components.frontend.async_remove_panel(PANEL_URL_PATH)
     except Exception:  # noqa: BLE001 — HA versions differ on panel removal
         _LOGGER.debug("Oquanta panel could not be unregistered")
+    try:
+        async_unregister_http_service(hass)
+    except Exception:  # noqa: BLE001 — service may already be gone
+        _LOGGER.debug("Oquanta HTTP service could not be unregistered")
     hass.data.pop(DOMAIN, None)
     return True
 

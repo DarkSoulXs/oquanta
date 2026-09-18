@@ -1,0 +1,33 @@
+http_request:
+  fields:
+    url:
+      required: true
+      example: "https://example.com/api"
+      selector:
+        text:
+    method:
+      default: GET
+      example: POST
+      selector:
+        select:
+          options:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+            - HEAD
+    headers:
+      selector:
+        object:
+    payload:
+      selector:
+        text:
+          multiline: true
+    timeout:
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 120
+          unit_of_measurement: s

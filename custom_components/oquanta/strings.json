@@ -9,5 +9,33 @@
     "abort": {
       "already_configured": "Oquanta is already configured."
     }
+  },
+  "services": {
+    "http_request": {
+      "name": "HTTP request",
+      "description": "Send an HTTP request from Home Assistant when an Oquanta HTTP card runs.",
+      "fields": {
+        "url": {
+          "name": "URL",
+          "description": "Request URL."
+        },
+        "method": {
+          "name": "Method",
+          "description": "HTTP method."
+        },
+        "headers": {
+          "name": "Headers",
+          "description": "Optional request headers."
+        },
+        "payload": {
+          "name": "Body",
+          "description": "Optional JSON or text body."
+        },
+        "timeout": {
+          "name": "Timeout",
+          "description": "Seconds to wait for a response."
+        }
+      }
+    }
   }
 }

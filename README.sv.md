@@ -73,7 +73,8 @@ Manuell zip: ladda ner en nyare zip och skriv över mappen.
 - Flöden som blir native Home Assistant-automationer (`oquanta_<id>`) eller skript (`script.oquanta_*`)
 - Bibliotek med mappar, taggar, pin, sök och rensning av tomma utkast
 - Live-katalog från din instans (entiteter, områden, tjänster)
-- Data-portar, anteckningar, ramar och YAML-import/export
+- Data-portar, anteckningar, ramar (dubbelklicka för att redigera inuti) och YAML-import/export
+- HTTP-kort (`oquanta.http_request`), HA-notiser, TTS och Home Assistant-blueprints
 - Live-test mot huset (`automation.trigger` / `script.turn_on`) — **tänder och släcker på riktigt**
 - Förhandsgranskning av villkor mot aktuella tillstånd, utan att köra åtgärder
 
