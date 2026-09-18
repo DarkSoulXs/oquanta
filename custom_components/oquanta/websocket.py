@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import voluptuous as vol
+import yaml
 
 from homeassistant.components import websocket_api
 from homeassistant.const import SERVICE_RELOAD, SERVICE_TURN_OFF, SERVICE_TURN_ON
@@ -42,6 +43,7 @@ def async_register(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_import)
     websocket_api.async_register_command(hass, ws_revisions)
     websocket_api.async_register_command(hass, ws_restore_revision)
+    websocket_api.async_register_command(hass, ws_parse_yaml)
 
 
 def _store(hass: HomeAssistant) -> FlowStore:
@@ -510,6 +512,33 @@ async def ws_restore_revision(
         connection.send_error(msg["id"], "not_found", "Revision not found")
         return
     connection.send_result(msg["id"], _summary(hass, record))
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "oquanta/parse_yaml",
+        vol.Required("yaml"): str,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_parse_yaml(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    try:
+        parsed = yaml.safe_load(msg["yaml"])
+    except yaml.YAMLError as err:
+        connection.send_error(msg["id"], "invalid_format", str(err))
+        return
+    if isinstance(parsed, list):
+        parsed = {"sequence": parsed}
+    if not isinstance(parsed, dict):
+        connection.send_error(msg["id"], "invalid_format", "YAML must be a mapping")
+        return
+    connection.send_result(msg["id"], parsed)
+    _ = hass
 
 
 async def _undeploy_record(hass: HomeAssistant, record: dict[str, Any]) -> str | None:
