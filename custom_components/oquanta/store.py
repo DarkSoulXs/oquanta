@@ -190,6 +190,18 @@ class FlowStore:
                 {
                     "saved_at": item.get("saved_at"),
                     "alias": meta.get("alias") or flow_id,
+                    "nodes": [
+                        {
+                            "id": str(node.get("id") or ""),
+                            "kind": str((_as_map(node.get("data")).get("kind") or "")),
+                            "label": str(
+                                (_as_map(node.get("data")).get("notes") or "")
+                                or (_as_map(node.get("data")).get("kind") or "")
+                            ),
+                        }
+                        for node in graph.get("nodes") or []
+                        if isinstance(node, dict)
+                    ],
                 }
             )
         return rows

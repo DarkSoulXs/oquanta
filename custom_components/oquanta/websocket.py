@@ -19,6 +19,7 @@ from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN
 from .store import FlowStore, automation_id_for, script_id_for
+from .yaml_util import parse_yaml_mapping
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -96,10 +97,34 @@ def _summary(hass: HomeAssistant, record: dict[str, Any]) -> dict[str, Any]:
         "entity_ids": _entity_ids(graph),
         "deployed_at": record.get("deployed_at"),
         "unpublished": _unpublished(record),
+        "folder": str(meta.get("folder") or ""),
+        "tags": _meta_tags(meta),
+        "pinned": bool(meta.get("pinned")),
+        "node_count": _node_count(graph),
+        "description": str(meta.get("description") or ""),
     }
     if record.get("deleted_at"):
         payload["deleted_at"] = record.get("deleted_at")
     return payload
+
+
+def _meta_tags(meta: dict[str, Any]) -> list[str]:
+    raw = meta.get("tags")
+    if not isinstance(raw, list):
+        return []
+    tags: list[str] = []
+    for item in raw:
+        text = str(item).strip()
+        if text and text not in tags:
+            tags.append(text)
+    return tags
+
+
+def _node_count(graph: dict[str, Any]) -> int:
+    nodes = graph.get("nodes")
+    if not isinstance(nodes, list):
+        return 0
+    return len(nodes)
 
 
 def _unpublished(record: dict[str, Any]) -> bool:
@@ -528,14 +553,12 @@ async def ws_parse_yaml(
     msg: dict[str, Any],
 ) -> None:
     try:
-        parsed = yaml.safe_load(msg["yaml"])
+        parsed = parse_yaml_mapping(str(msg["yaml"]))
     except yaml.YAMLError as err:
         connection.send_error(msg["id"], "invalid_format", str(err))
         return
-    if isinstance(parsed, list):
-        parsed = {"sequence": parsed}
-    if not isinstance(parsed, dict):
-        connection.send_error(msg["id"], "invalid_format", "YAML must be a mapping")
+    except ValueError as err:
+        connection.send_error(msg["id"], "invalid_format", str(err))
         return
     connection.send_result(msg["id"], parsed)
     _ = hass
