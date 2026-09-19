@@ -102,10 +102,26 @@ def _summary(hass: HomeAssistant, record: dict[str, Any]) -> dict[str, Any]:
         "pinned": bool(meta.get("pinned")),
         "node_count": _node_count(graph),
         "description": str(meta.get("description") or ""),
+        "fields": _meta_fields(meta),
     }
     if record.get("deleted_at"):
         payload["deleted_at"] = record.get("deleted_at")
     return payload
+
+
+def _meta_fields(meta: dict[str, Any]) -> list[dict[str, str]]:
+    raw = meta.get("fields")
+    if not isinstance(raw, list):
+        return []
+    fields: list[dict[str, str]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        key = str(item.get("key") or "").strip()
+        if not key:
+            continue
+        fields.append({"key": key, "value": str(item.get("value") or "")})
+    return fields
 
 
 def _meta_tags(meta: dict[str, Any]) -> list[str]:

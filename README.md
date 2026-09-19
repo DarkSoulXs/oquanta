@@ -73,6 +73,11 @@ Manual zip: download a newer zip and overwrite the folder.
 - Flows that become native Home Assistant automations (`oquanta_<id>`) or scripts (`script.oquanta_*`)
 - Library folders, tags, pin, search, and empty-draft cleanup
 - Live catalog from your instance (entities, areas, services)
+- Drag cards from the palette onto the canvas; drop on a port to connect
+- Script cards: new or existing Oquanta/HA script, with named fields
+- Import a Home Assistant automation as a copy, or take it over (confirmed)
+- Command palette (`Ctrl+K`), undo/redo, and remove wires (drag an end onto empty canvas or right-click)
+- Inspector: Flow vs Card, entity-first When / If / Do
 - Data ports, notes, frames (double-click to edit inside), and YAML import/export
 - HTTP cards (`oquanta.http_request`), HA notices, TTS, and Home Assistant blueprints
 - Live test against the house (`automation.trigger` / `script.turn_on`) — **this really turns things on and off**

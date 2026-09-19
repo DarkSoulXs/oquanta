@@ -73,6 +73,11 @@ Manuell zip: ladda ner en nyare zip och skriv över mappen.
 - Flöden som blir native Home Assistant-automationer (`oquanta_<id>`) eller skript (`script.oquanta_*`)
 - Bibliotek med mappar, taggar, pin, sök och rensning av tomma utkast
 - Live-katalog från din instans (entiteter, områden, tjänster)
+- Dra kort från paletten till duken; släpp på en port för att koppla
+- Skriptkort: nytt eller befintligt Oquanta-/HA-skript, med namngivna fält
+- Importera en Home Assistant-automation som kopia, eller ta över den (efter bekräftelse)
+- Kommandopalett (`Ctrl+K`), ångra/gör om, och ta bort sladdar (dra änden till tom yta eller högerklicka)
+- Inspector: Flöde vs Kort, entitet först på När / Om / Gör
 - Data-portar, anteckningar, ramar (dubbelklicka för att redigera inuti) och YAML-import/export
 - HTTP-kort (`oquanta.http_request`), HA-notiser, TTS och Home Assistant-blueprints
 - Live-test mot huset (`automation.trigger` / `script.turn_on`) — **tänder och släcker på riktigt**
