@@ -78,6 +78,7 @@ Manual zip: download a newer zip and overwrite the folder.
 - Import a Home Assistant automation as a copy, or take it over (confirmed)
 - Command palette (`Ctrl+K`), undo/redo, and remove wires (drag an end onto empty canvas or right-click)
 - Inspector: Flow vs Card, entity-first When / If / Do
+- First-class Home Assistant fields: MQTT payload/QoS, webhook methods, event data, several entities, state attributes, numeric above/below, and floor targets
 - Data ports, notes, frames (double-click to edit inside), and YAML import/export
 - HTTP cards (`oquanta.http_request`), HA notices, TTS, and Home Assistant blueprints
 - Live test against the house (`automation.trigger` / `script.turn_on`) — **this really turns things on and off**

@@ -78,6 +78,7 @@ Manuell zip: ladda ner en nyare zip och skriv över mappen.
 - Importera en Home Assistant-automation som kopia, eller ta över den (efter bekräftelse)
 - Kommandopalett (`Ctrl+K`), ångra/gör om, och ta bort sladdar (dra änden till tom yta eller högerklicka)
 - Inspector: Flöde vs Kort, entitet först på När / Om / Gör
+- Förstaklass-fält mot Home Assistant: MQTT payload/QoS, webhook-metoder, händelsedata, flera entiteter, tillståndsattribut, numeric above/below och våning som mål
 - Data-portar, anteckningar, ramar (dubbelklicka för att redigera inuti) och YAML-import/export
 - HTTP-kort (`oquanta.http_request`), HA-notiser, TTS och Home Assistant-blueprints
 - Live-test mot huset (`automation.trigger` / `script.turn_on`) — **tänder och släcker på riktigt**
