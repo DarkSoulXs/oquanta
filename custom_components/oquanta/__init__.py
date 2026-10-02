@@ -28,6 +28,7 @@ from .const import (
 from .http_service import async_register as async_register_http_service
 from .http_service import async_unregister as async_unregister_http_service
 from .store import FlowStore
+from .trace_watch import async_start_trace_watch, async_stop_trace_watch
 from .update import OquantaUpdateCoordinator, OquantaUpdateEntity
 from .websocket import async_register as async_register_websocket
 
@@ -82,6 +83,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async_register_http_service(hass)
 
     await _async_register_static_paths(hass)
+    async_when_setup(hass, "lovelace", _async_ensure_flows_card)
     await async_setup_component(hass, "panel_custom", {})
     await _async_register_panel(hass)
     await async_setup_component(hass, "update", {})
@@ -107,11 +109,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     else:
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _refresh_on_start)
 
+    async_start_trace_watch(hass)
+
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload the panel when the config entry is removed."""
+    async_stop_trace_watch(hass)
     try:
         hass.components.frontend.async_remove_panel(PANEL_URL_PATH)
     except Exception:  # noqa: BLE001 — HA versions differ on panel removal
@@ -122,6 +127,30 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.debug("Oquanta HTTP service could not be unregistered")
     hass.data.pop(DOMAIN, None)
     return True
+
+
+_CARD_URL = f"{STATIC_URL_PATH}/oquanta-flows-card.js"
+
+
+async def _async_ensure_flows_card(hass: HomeAssistant, _component: str) -> None:
+    """Load the overview card, and add the Lovelace resource if it is missing."""
+    try:
+        from homeassistant.components.frontend import add_extra_js_url
+
+        add_extra_js_url(hass, _CARD_URL)
+    except Exception:  # noqa: BLE001 — older cores lack the helper
+        _LOGGER.debug("Oquanta card script could not be added", exc_info=True)
+    try:
+        lovelace = hass.data.get("lovelace")
+        resources = getattr(lovelace, "resources", None)
+        if resources is None:
+            return
+        items = resources.async_items()
+        if any(str(item.get("url")) == _CARD_URL for item in items):
+            return
+        await resources.async_create_item({"res_type": "module", "url": _CARD_URL})
+    except Exception:  # noqa: BLE001 — YAML mode has no resource storage
+        _LOGGER.debug("Oquanta Lovelace resource could not be registered", exc_info=True)
 
 
 async def _async_register_static_paths(hass: HomeAssistant) -> None:

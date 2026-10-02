@@ -10,6 +10,12 @@
       "already_configured": "Oquanta är redan konfigurerad."
     }
   },
+  "issues": {
+    "trace_failed": {
+      "title": "{name} felade vid senaste körningen",
+      "description": "Senaste körningen av {name} slutade med ett fel. Öppna Oquanta och titta på tidigare körningar för att se vilket kort som stannade. En senare körning utan fel tar bort den här reparationen."
+    }
+  },
   "services": {
     "http_request": {
       "name": "HTTP-anrop",

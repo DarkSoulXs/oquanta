@@ -17,8 +17,10 @@ from homeassistant.const import SERVICE_RELOAD, SERVICE_TURN_OFF, SERVICE_TURN_O
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 
+from .assist_expose import ASSISTANT, assist_exposure
 from .const import DOMAIN
 from .store import FlowStore, automation_id_for, script_id_for
+from .trace_watch import last_sentence, runs_this_week
 from .yaml_util import parse_yaml_mapping
 
 _LOGGER = logging.getLogger(__name__)
@@ -57,6 +59,37 @@ def find_automation_entity(hass: HomeAssistant, automation_id: str) -> str | Non
         if str(state.attributes.get("id", "")) == automation_id:
             return state.entity_id
     return None
+
+
+def _sync_assist(hass: HomeAssistant, kind: str, phrase: str, script_id: str) -> None:
+    """Expose a published script to Assist, or hide it when the phrase is empty."""
+    decision = assist_exposure(kind, phrase)
+    if decision is None:
+        return
+    expose, heard = decision
+    entity_id = find_script_entity(hass, script_id)
+    if entity_id is None:
+        return
+    try:
+        from homeassistant.components.homeassistant.exposed_entities import (
+            async_expose_entity,
+        )
+    except ImportError:
+        _LOGGER.debug("Oquanta could not import the Assist expose helper")
+        return
+    try:
+        async_expose_entity(hass, ASSISTANT, entity_id, expose)
+        _rename_for_assist(hass, entity_id, heard if expose else "")
+    except Exception:  # noqa: BLE001 — expose storage differs between HA versions
+        _LOGGER.debug("Oquanta could not update Assist exposure", exc_info=True)
+
+
+def _rename_for_assist(hass: HomeAssistant, entity_id: str, heard: str) -> None:
+    """The phrase is the name Assist hears. Empty restores the script's own name."""
+    registry = er.async_get(hass)
+    if registry.async_get(entity_id) is None:
+        return
+    registry.async_update_entity(entity_id, name=heard or None)
 
 
 def find_script_entity(hass: HomeAssistant, script_id: str) -> str | None:
@@ -103,6 +136,8 @@ def _summary(hass: HomeAssistant, record: dict[str, Any]) -> dict[str, Any]:
         "node_count": _node_count(graph),
         "description": str(meta.get("description") or ""),
         "fields": _meta_fields(meta),
+        "last_sentence": _last_sentence(hass, kind, automation_id, script_id),
+        "runs_week": _runs_week(hass, kind, automation_id, script_id),
     }
     if record.get("deleted_at"):
         payload["deleted_at"] = record.get("deleted_at")
@@ -141,6 +176,24 @@ def _node_count(graph: dict[str, Any]) -> int:
     if not isinstance(nodes, list):
         return 0
     return len(nodes)
+
+
+def _last_sentence(
+    hass: HomeAssistant, kind: str, automation_id: str, script_id: str
+) -> str:
+    item_id = script_id if kind == "script" else automation_id
+    if not item_id:
+        return ""
+    return last_sentence(hass, item_id)
+
+
+def _runs_week(
+    hass: HomeAssistant, kind: str, automation_id: str, script_id: str
+) -> int:
+    item_id = script_id if kind == "script" else automation_id
+    if not item_id:
+        return 0
+    return runs_this_week(hass, item_id)
 
 
 def _unpublished(record: dict[str, Any]) -> bool:
@@ -296,6 +349,8 @@ async def ws_save(
         marked = await store.async_mark_deployed(flow_id)
         if marked is not None:
             record = marked
+        if kind == "script":
+            _sync_assist(hass, kind, str(meta.get("assistPhrase") or ""), script_id_for(flow_id))
     connection.send_result(
         msg["id"],
         {

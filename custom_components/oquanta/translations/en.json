@@ -10,6 +10,12 @@
       "already_configured": "Oquanta is already configured."
     }
   },
+  "issues": {
+    "trace_failed": {
+      "title": "{name} failed on its latest run",
+      "description": "The latest run of {name} ended with an error. Open Oquanta and look at the earlier runs to see which card stopped. A later run without an error clears this repair."
+    }
+  },
   "services": {
     "http_request": {
       "name": "HTTP request",
