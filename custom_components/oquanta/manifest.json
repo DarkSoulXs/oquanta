@@ -1,7 +1,7 @@
 {
   "domain": "oquanta",
   "name": "Oquanta",
-  "after_dependencies": ["automation", "script"],
+  "after_dependencies": ["automation", "script", "logbook"],
   "codeowners": ["@DarkSoulXs"],
   "config_flow": true,
   "dependencies": ["frontend", "http", "panel_custom", "update", "websocket_api"],
