@@ -28,9 +28,17 @@ Panelen följer Home Assistants språk (svenska eller engelska).
 
 Biblioteket håller varje flöde, och visar om det är på.
 
+![Samma bibliotek i ljust tema](docs/library-light.png)
+
+Samma bibliotek i ljust tema.
+
 ![Rörelse i hallen tänder en lampa, väntar och släcker](docs/canvas.png)
 
 Hall motion tänder taklampan, väntar två minuter och släcker. Pricken är lampans läge just nu.
+
+![Samma flöde i ljust tema](docs/canvas-light.png)
+
+Samma flöde i ljust tema.
 
 ![En dörrklocka skickar ett meddelande till telefonen](docs/doorbell.png)
 

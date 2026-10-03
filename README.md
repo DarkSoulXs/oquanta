@@ -28,9 +28,17 @@ The panel follows Home Assistant’s language (English or Swedish).
 
 The library keeps each flow, and shows whether it is on.
 
+![The same library in the light theme](docs/library-light.png)
+
+The same library in the light theme.
+
 ![Hall motion turns a light on, waits, then turns it off](docs/canvas.png)
 
 Hall motion turns the ceiling light on, waits two minutes, then turns it off. The dot is the light’s live state.
+
+![The same flow in the light theme](docs/canvas-light.png)
+
+The same flow in the light theme.
 
 ![A doorbell sends a phone notice](docs/doorbell.png)
 
