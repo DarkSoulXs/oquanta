@@ -24,11 +24,17 @@ Det här repot är **installationen** (`custom_components/oquanta`). Källkoden 
 
 Panelen följer Home Assistants språk (svenska eller engelska).
 
-![Bibliotek med mappar, taggar och filter](docs/library.png)
+![Biblioteket, med flöden på och av](docs/library.png)
 
-![Data-port mellan När och Gör](docs/data-port.png)
+Biblioteket håller varje flöde, och visar om det är på.
 
-![Klistra YAML från Home Assistant](docs/paste-yaml.png)
+![Rörelse i hallen tänder en lampa, väntar och släcker](docs/canvas.png)
+
+Hall motion tänder taklampan, väntar två minuter och släcker. Pricken är lampans läge just nu.
+
+![En dörrklocka skickar ett meddelande till telefonen](docs/doorbell.png)
+
+Knappen vid ytterdörren skickar ett meddelande till en telefon.
 
 ---
 
@@ -70,19 +76,12 @@ Manuell zip: ladda ner en nyare zip och skriv över mappen.
 
 ## Vad som finns
 
-- Flöden som blir native Home Assistant-automationer (`oquanta_<id>`) eller skript (`script.oquanta_*`)
-- Bibliotek med mappar, taggar, pin, sök och rensning av tomma utkast
-- Live-katalog från din instans (entiteter, områden, tjänster)
-- Dra kort från paletten till duken; släpp på en port för att koppla
-- Skriptkort: nytt eller befintligt Oquanta-/HA-skript, med namngivna fält
-- Importera en Home Assistant-automation som kopia, eller ta över den (efter bekräftelse)
-- Kommandopalett (`Ctrl+K`), ångra/gör om, och ta bort sladdar (dra änden till tom yta eller högerklicka)
-- Inspector: Flöde vs Kort, entitet först på När / Om / Gör
-- Förstaklass-fält mot Home Assistant: MQTT payload/QoS, webhook-metoder, händelsedata, flera entiteter, tillståndsattribut, numeric above/below och våning som mål
-- Data-portar, anteckningar, ramar (dubbelklicka för att redigera inuti) och YAML-import/export
-- HTTP-kort (`oquanta.http_request`), HA-notiser, TTS och Home Assistant-blueprints
-- Live-test mot huset (`automation.trigger` / `script.turn_on`) — **tänder och släcker på riktigt**
-- Förhandsgranskning av villkor mot aktuella tillstånd, utan att köra åtgärder
+- Flöden som Home Assistant kör som automationer eller skript
+- Vardagsstarter: rörelse, dörrar, läckor, dörrklocka, temperatur och ljus före solnedgång
+- En live-prick på varje kort, så du ser om entiteten är på eller av
+- Ett bibliotek, och en lista på telefonen
+- En Assist-fras för ett skript
+- Ett översiktskort som listar flödena och kan köra ett
 
 Rapportera gärna fel under [Issues](https://github.com/DarkSoulXs/oquanta/issues).
 

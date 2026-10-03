@@ -24,11 +24,17 @@ This repository is the **installable integration** (`custom_components/oquanta`)
 
 The panel follows Home Assistant’s language (English or Swedish).
 
-![Library with folders, tags, and filters](docs/library.png)
+![The library, with flows on and off](docs/library.png)
 
-![Data port between When and Do](docs/data-port.png)
+The library keeps each flow, and shows whether it is on.
 
-![Paste YAML from Home Assistant](docs/paste-yaml.png)
+![Hall motion turns a light on, waits, then turns it off](docs/canvas.png)
+
+Hall motion turns the ceiling light on, waits two minutes, then turns it off. The dot is the light’s live state.
+
+![A doorbell sends a phone notice](docs/doorbell.png)
+
+The front door button sends a notice to a phone.
 
 ---
 
@@ -70,19 +76,12 @@ Manual zip: download a newer zip and overwrite the folder.
 
 ## What is there
 
-- Flows that become native Home Assistant automations (`oquanta_<id>`) or scripts (`script.oquanta_*`)
-- Library folders, tags, pin, search, and empty-draft cleanup
-- Live catalog from your instance (entities, areas, services)
-- Drag cards from the palette onto the canvas; drop on a port to connect
-- Script cards: new or existing Oquanta/HA script, with named fields
-- Import a Home Assistant automation as a copy, or take it over (confirmed)
-- Command palette (`Ctrl+K`), undo/redo, and remove wires (drag an end onto empty canvas or right-click)
-- Inspector: Flow vs Card, entity-first When / If / Do
-- First-class Home Assistant fields: MQTT payload/QoS, webhook methods, event data, several entities, state attributes, numeric above/below, and floor targets
-- Data ports, notes, frames (double-click to edit inside), and YAML import/export
-- HTTP cards (`oquanta.http_request`), HA notices, TTS, and Home Assistant blueprints
-- Live test against the house (`automation.trigger` / `script.turn_on`) — **this really turns things on and off**
-- Condition preview against current states, without firing actions
+- Flows that Home Assistant runs as automations or scripts
+- Everyday starters: motion, doors, leaks, doorbells, temperature, and lights before sunset
+- A live dot on each card, so you can see if the entity is on or off
+- A library, and a list on your phone
+- An Assist phrase for a script
+- A dashboard card that lists your flows and can run one
 
 Please report issues under [Issues](https://github.com/DarkSoulXs/oquanta/issues).
 
